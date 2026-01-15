@@ -1,26 +1,23 @@
-// 노션 최신 SDK를 불러옵니다.
 const { Client } = require('@notionhq/client');
 
 exports.handler = async (event) => {
-  // 1. 로봇 초기화
+  // 1. 넷리파이에 설정한 비밀번호 키로 로봇을 깨웁니다.
   const notion = new Client({ auth: process.env.NOTION_KEY });
+  // 2. 원장님의 진짜 노션 표 ID입니다.
   const databaseId = '2e88e00f84408099a3e5f0f3acaf5c96'; 
   const name = event.queryStringParameters.name || '김도일';
 
   try {
-    // 2. 버전 충돌을 방지하기 위해 가장 표준적인 query 명령을 내립니다.
-    // 원장님이 바꾸신 '텍스트' 형식의 StudentId 칸을 검색합니다.
+    // 3. 최신 로봇 명령어(query)로 노션 데이터를 찾아옵니다.
     const response = await notion.databases.query({
       database_id: databaseId,
       filter: {
         property: 'StudentId',
-        rich_text: {
-          contains: name
-        }
+        rich_text: { contains: name }
       }
     });
 
-    // 3. 데이터가 없으면 상세 이유를 보냅니다.
+    // 4. 데이터가 없으면 이유를 화면에 띄웁니다.
     if (!response.results || response.results.length === 0) {
       return {
         statusCode: 200,
@@ -29,14 +26,14 @@ exports.handler = async (event) => {
       };
     }
 
-    // 4. 성공 시 데이터 반환
+    // 5. 성공 시 데이터를 보냅니다.
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify(response.results[0]),
     };
   } catch (error) {
-    // 5. 서버에 설치된 로봇 버전을 확인하기 위해 에러를 더 상세히 띄웁니다.
+    // 6. 에러가 나면 원인을 상세히 출력합니다.
     return { 
       statusCode: 500, 
       headers: { "Content-Type": "application/json; charset=utf-8" },
