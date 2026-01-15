@@ -15,15 +15,16 @@ exports.handler = async (event) => {
       }
     });
 
-    // 2. 만약 검색 결과가 없다면, 왜 없는지 화면에 뿌려줍니다.
+    // 2. 만약 검색 결과가 없다면, 왜 없는지 화면에 상세 정보를 뿌려줍니다.
     if (response.results.length === 0) {
       return {
-        statusCode: 404,
+        statusCode: 200,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({ 
-          errorMessage: "노션에서 데이터를 찾지 못했습니다.",
+          errorType: "데이터 찾기 실패",
           triedName: name,
-          databaseId: databaseId,
-          hint: "노션의 StudentId 칸에 정확히 '" + name + "' 글자가 있는지 확인하세요."
+          msg: "노션 표에서 '" + name + "'을 못 찾았습니다.",
+          checkPoint: "노션의 StudentId 칸이 '수식'이 아닌 '텍스트'인지 확인하세요."
         })
       };
     }
@@ -31,16 +32,18 @@ exports.handler = async (event) => {
     // 3. 성공하면 데이터를 보냅니다.
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify(response.results[0]),
     };
   } catch (error) {
     // 4. 아예 접속 자체가 안 되면 에러 메시지를 보냅니다.
     return { 
       statusCode: 500, 
+      headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify({ 
-        errorMessage: "서버 접속 에러 발생",
-        errorDetail: error.message 
+        errorType: "서버 접속 자체 실패",
+        errorDetail: error.message,
+        hint: "넷리파이의 NOTION_KEY가 정확한지 확인하세요."
       }) 
     };
   }
