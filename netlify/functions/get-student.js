@@ -1,15 +1,16 @@
 const { Client } = require('@notionhq/client');
 
 exports.handler = async (event) => {
-  // 1. 노션 로봇을 깨웁니다. (넷리파이에 설정한 NOTION_KEY 사용)
+  // 1. 넷리파이 설정창에 넣으신 비밀번호를 가져와 로봇을 깨웁니다.
   const notion = new Client({ auth: process.env.NOTION_KEY });
-  // 2. 원장님의 진짜 노션 표 ID입니다.
+  
+  // 2. 원장님의 진짜 노션 표 주소 키입니다.
   const databaseId = '2e88e00f84408099a3e5f0f3acaf5c96'; 
+  
   const name = event.queryStringParameters.name || '김도일';
 
   try {
-    // 3. 노션에서 데이터를 찾아옵니다. 
-    // 원장님이 바꾸신 '텍스트' 형식의 StudentId 칸을 검색합니다.
+    // 3. 노션 표에서 StudentId 칸에 '김도일'이 있는지 찾습니다.
     const response = await notion.databases.query({
       database_id: databaseId,
       filter: {
@@ -20,27 +21,27 @@ exports.handler = async (event) => {
       }
     });
 
-    // 4. 만약 검색 결과가 없으면 상세 정보를 화면에 뿌립니다.
+    // 4. 만약 검색 결과가 없으면 에러 메시지를 보냅니다.
     if (!response.results || response.results.length === 0) {
       return {
         statusCode: 200,
         headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({ 
-          error: "DATA_NOT_FOUND", 
+          error: "데이터 없음", 
           msg: name + " 학생을 찾지 못했습니다.",
-          check: "노션 StudentId 칸에 '" + name + "' 글자가 정확히 있는지 보세요."
+          tip: "노션의 StudentId 칸이 '텍스트' 유형인지 꼭 확인하세요!" 
         })
       };
     }
 
-    // 5. 성공하면 데이터를 보냅니다.
+    // 5. 성공하면 데이터를 화면으로 보냅니다.
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify(response.results[0]),
     };
   } catch (error) {
-    // 6. 에러 발생 시 (아까 났던 query is not a function 에러 등을 잡아냅니다)
+    // 6. 서버 연결 자체가 안 될 때 에러를 출력합니다.
     return { 
       statusCode: 500, 
       headers: { "Content-Type": "application/json; charset=utf-8" },
